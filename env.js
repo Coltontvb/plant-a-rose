@@ -1,0 +1,10 @@
+let mainEngineTimers = {
+	TICK_INTERVAL: 1000,
+	DAY_DURATION: 50000,
+	NIGHT_DURATION: 50000,
+	REQUIRE_WATER: 100000,
+	REQUIRE_FOOD: 1000000,
+	REQUIRE_COMPOST: 150000,
+}
+
+export default mainEngineTimers;
