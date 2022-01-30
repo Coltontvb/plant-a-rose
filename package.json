@@ -5,12 +5,13 @@
   "main": "GameSession.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-	"dev": "parcel index.html"
+    "dev": "parcel index.html"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "express": "^4.17.2"
+    "express": "^4.17.2",
+    "lodash": "^4.17.21"
   },
   "devDependencies": {
     "parcel-bundler": "^1.12.5"

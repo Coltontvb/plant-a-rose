@@ -1,15 +1,27 @@
 import Game from "../GameContext";
 
-const gameCtx = localStorage.gameCtx;
+const gameCtx = localStorage.getItem("gameCtx");
 
 if(gameCtx) {
-	let game = new Game(gameCtx);
-	game.gameInit();
+	console.log(`Found Previous Game Context:`, JSON.parse(gameCtx));
+	let game = new Game(JSON.parse(gameCtx));
+	game.gameInit(true);
 }
 if(!gameCtx) {
+	const gameCtx = {
+		player: "Default Player",
+		plants: ["Generic House Plant"],
+		totalGameClock: 0,
+		gameStatus: "STARTED",
+		currentGameSeason: "SPRING",
+		currentGameDay: 0,
+		timeOfDay:"MORNING",
+		tutorialMode: "TRUE"
+	}
 	console.warn(`No game context: `, gameCtx);
-	let game = new Game()
-	game.newGameInit();
+	let game = new Game(gameCtx)
+	game.gameSave(gameCtx);
+	game.gameInit();
 }
 
 

@@ -1,24 +1,30 @@
-import { request } from "http";
+const _ = require('lodash');
 import environmentVars, { mainEngineTimers } from "./env";
+import initControls, { initializeControls } from "./public/controls";
+
 let TICK_INTERVAL = environmentVars.TICK_INTERVAL
 
 function Game(gameContext) {
-	let player = "Default Player"
-	let plants = [];
-	let gameDurationInTicks = 0;
-	let gameStatus = "STOPPED";
-	let currentGameSeason = gameContext.gameSeason || "SPRING";
-	let currentGameDay = gameContext.gameDay || 0;
-	let gameTimeOfDay = gameContext.gameTimeOfDay || "MORNING";
+	let player = gameContext.player;
+	let plants = gameContext.plants;
+	let gameClock = 0;
+	let totalGameClock = gameContext.totalGameClock;
+	let gameStatus = gameContext.gameStatus;
+	let currentGameSeason = gameContext.currentGameSeason;
+	let currentGameDay = gameContext.currentGameDay;
+	let gameTimeOfDay = gameContext.gameTimeOfDay;
 	let tutorialMode = "FALSE";
 
-	this.gameInit = async () => {
+	this.gameInit = async (initialInit) => {
 		let nextTimeToTick = Date.now();
+		if (initialInit) {
+			initControls(this.handleAction);
+		}
 		let nextAnimationFrame = () => {
 			if(gameStatus === "STARTED") {
 				const now = Date.now();
 				if (nextTimeToTick <= now) {
-					this.updateGameDurationInTicks(TICK_INTERVAL);
+					this.updateSessionClock();
 					nextTimeToTick = now + TICK_INTERVAL;
 				}
 				requestAnimationFrame(nextAnimationFrame);
@@ -27,30 +33,75 @@ function Game(gameContext) {
 		nextAnimationFrame();
 	}
 
-	this.newGameInit = async () => {
-		const gameCtx = {
-			player: "Default Player",
-			plants: ["Generic House Plant"],
-			gameDurationInTicks: 0,
-			gameStatus: "STARTED",
-			currentGameSeason: "SPRING",
-			timeOfDay:"MORNING",
-			tutorialMode: "TRUE"
-		}
-		localStorage.setItem(gameCtx);
-		await this.gameInit(gameCtx);
+	this.updateSessionClock = () => {
+		gameClock++
+		console.log(`GAME CLOCK:`, gameClock);
+		(gameClock % 10) ? "" : this.updateTotalGameClock();
 	}
 
-	this.tick = () => {
-		this.gameDurationInTicks++
-		console.log(`TICK: Total Tick`, this.totalTicks);
+	this.getTotalPlayTime = () => {
+		let seconds = Number(Math.floor(totalGameClock * TICK_INTERVAL))
+		console.log("TOTAL PLAY TIME IN SECONDS:", seconds);
+	}
+
+	this.handleAction = (actionTaken) => {
+		//console.log("ACTION TAKEN:", actionTaken)
+		if (actionTaken === "FEED") {
+			this.setFedState()
+		}
+		if (actionTaken === "WATER") {
+			this.setWateredState()
+		}
+		if (actionTaken === "SUN") {
+			this.setSunnedState()
+		}
+		if (actionTaken === "PAUSE") {
+			this.gamePause();
+		}
+		if (actionTaken === "START") {
+			this.gameStart();
+		}
+	}
+
+
+	this.setNeedFeedState = () => {
+		console.log("I NEED FEEDING!");
+	}
+
+	this.setFedState = () => {
+		console.log("Fed");
+	}
+
+	this.setNeedWaterState = () => {
+		console.log("I NEED WATERING");
+	}
+
+	this.setWateredState = () => {
+		console.log("Watered");
+	}
+
+	this.setNeedSunState = () => {
+		console.log("I NEED SUN");
+	}
+
+	this.setSunnedState = () => {
+		console.log("Sunned");
+	}
+
+	this.gameSave = (gameCtx) => {
+		localStorage.setItem("gameCtx", JSON.stringify(gameCtx));
+	}
+
+	this.deleteSave = () => {
+		localStorage.clear();
 	}
 
 	this.gameStart = () => {
-		if (this.gameStatus != "STARTED") {
+		if (gameStatus != "STARTED") {
 			this.updateGameStatus({status: "STARTED"});
+			this.gameInit(false);
 		}
-		console.log("Game Status:", gameStatus);
+		//console.log("Game Status:", gameStatus);
 	}
 
 	this.gamePause = () => {
@@ -71,10 +122,9 @@ function Game(gameContext) {
 
 	this.updateGameStatus = (settings) => {
 		let { status } = settings;
-		console.log(`Update game status from ${gameStatus}, to ${status}`)
-		gameStatus = status
-		console.log(`Updated game status to, ${gameStatus}`);
-		return this.gameStatus();
+		//console.log(`Update game status from ${gameStatus}, to ${status}`)
+		gameStatus = status;
+		//console.log(`Updated game status to, ${gameStatus}`);
 	}
 
 	this.updateGameDurationInTicks = () => {
@@ -83,7 +133,21 @@ function Game(gameContext) {
 	}
 
 	this.getGameDurationInTicks = () => {
+		console.log("Ticks: ", gameDurationInTicks);
 		return gameDurationInTicks;
+	}
+
+	this.updateTotalGameClock = () => {
+		let gameCtx = JSON.parse(localStorage.getItem("gameCtx"));
+		gameCtx.totalGameClock += 10 //CHANGE ME WITH VAR
+		localStorage.setItem("gameCtx", JSON.stringify(gameCtx));
+		console.log("TOTAL GAME DURATION IN CLOCKS", gameCtx.totalGameClock)
+		console.log("GAME CONTEXT:", gameCtx);
+	}
+
+	this.getTotalGameClock = () => {
+		console.log("Total Game Clock:", totalGameClock);
+		return totalGameDuration;
 	}
 
 	this.getPlayerName = () => {
